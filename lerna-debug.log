@@ -1,0 +1,16 @@
+0 silly argv {
+0 silly argv   _: [ 'add' ],
+0 silly argv   scope: '@lexue/editor',
+0 silly argv   globs: [],
+0 silly argv   lernaVersion: '3.22.1',
+0 silly argv   '$0': 'lerna',
+0 silly argv   pkg: 'quill-image-resize-module@3.0.0'
+0 silly argv }
+1 notice cli v3.22.1
+2 verbose rootPath /Users/zhanglingtan/lerna_study
+3 error FetchError: request to https://registry.npmjs.org/quill-image-resize-module failed, reason: connect ETIMEDOUT 104.16.24.35:443
+3 error     at ClientRequest.<anonymous> (/Users/zhanglingtan/.nvm/versions/node/v13.5.0/lib/node_modules/lerna/node_modules/_node-fetch-npm@2.0.4@node-fetch-npm/src/index.js:68:14)
+3 error     at ClientRequest.emit (events.js:305:20)
+3 error     at TLSSocket.socketErrorListener (_http_client.js:423:9)
+3 error     at TLSSocket.emit (events.js:305:20)
+3 error     at emitErrorNT (internal/streams/destroy.js:84:8)

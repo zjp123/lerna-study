@@ -1,0 +1,27 @@
+{
+  "name": "@lexue/editor",
+  "version": "1.0.0",
+  "description": "> TODO: description",
+  "author": "zhangjunpeng <zhangjunpeng@lexue.com>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/editor.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "registry": "http://r.cnpmjs.org/"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "quill-image-drop-module": "1.0.3",
+    "quill-image-resize-module": "3.0.0",
+    "vue-quill-editor": "3.0.6"
+  }
+}
