@@ -5,7 +5,7 @@
   .createQuestion
     quill-editor(
       :content="content"
-      :options="options"
+      :options="optionsData"
       ref='myQuillEditor'
       @blur="onEditorBlur($event)"
       @focus="onEditorFocus($event)"
@@ -13,45 +13,29 @@
     )
     slot
 
+
 </template>
 <script>
 import { quillEditor, Quill } from 'vue-quill-editor';
 import { ImageDrop } from 'quill-image-drop-module';
 import ImageResize from 'quill-image-resize-module';
 import Video from './editor_video.js'; // 插入h5 video视频
+import AudioBlot from './audio.js'; // 插入h5 video视频
+
+Quill.register(AudioBlot);
 Quill.register(Video);// 注册video
 Quill.register('modules/imageDrop', ImageDrop);
 Quill.register('modules/imageResize', ImageResize);
+
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css';
+
+// Vue.use(Upload)
 // console.log(Quill, 'Quill.BlockEmbedQuill.BlockEmbed');
-const BlockEmbed = Quill.import('blots/block/embed');
-class AudioBlot extends BlockEmbed {
-  static create (value) {
-    let node = super.create();
-    node.setAttribute('class', 'audio');
-    node.setAttribute('src', value);
-    node.setAttribute('controls', true);
-    node.setAttribute('preload', 'none');
-    node.setAttribute('width', '');
-    node.setAttribute('height', '');
-    return node;
-  }
 
-  static value (node) {
-    return {
-      class: node.getAttribute('class'),
-      url: node.getAttribute('src'),
-      controls: node.getAttribute('controls'),
-      preload: node.getAttribute('preload'),
-      width: node.getAttribute('width'),
-      height: node.getAttribute('height')
-    };
-  }
-}
-
-AudioBlot.blotName = 'voice';
-AudioBlot.tagName = 'audio';
-Quill.register(AudioBlot);
 export default {
+  name: 'my-editor',
   components: {
     quillEditor
   },
@@ -65,19 +49,29 @@ export default {
       type: Boolean,
       default: false
     },
+    // options: {
+    //   type: Object,
+    //   required: false
+    // }
     options: {
       type: Object,
-      default: () => {
+      default: function () {
         return {
           placeholder: '请输入...',
           modules: {
+            clipboard: {
+            // 粘贴版，处理粘贴时候的自带样式
+              matchers: [[Node.ELEMENT_NODE, this.HandleCustomMatcher]],
+            },
             toolbar: {
               container: [
                 ['bold'],
                 // ['blockquote', 'code-block'],
                 // [{ 'align': [] }],
                 // [{ 'color': [] }, { 'background': [] }],
-                ['image', 'video'],
+                // ['image', 'video'],
+                ['image'],
+                ['video'],
                 ['voice'] // 音频
               ],
               handlers: {
@@ -98,8 +92,39 @@ export default {
   },
   data () {
     return {
-      editor: null
-    };
+      editor: null,
+      optionsData: {}
+      // optionsData: {
+      //     placeholder: '请输入...',
+      //     modules: {
+      //       clipboard: {
+      //       // 粘贴版，处理粘贴时候的自带样式
+      //         matchers: [[Node.ELEMENT_NODE, this.HandleCustomMatcher]],
+      //       },
+      //       toolbar: {
+      //         container: [
+      //           ['bold'],
+      //           // ['blockquote', 'code-block'],
+      //           // [{ 'align': [] }],
+      //           // [{ 'color': [] }, { 'background': [] }],
+      //           // ['image', 'video'],
+      //           ['image'],
+      //           ['video'],
+      //           ['voice'] // 音频
+      //         ],
+      //         handlers: {
+      //           'voice': function (value) {
+      //           // 添加工具方法，即点击时模仿点击上传组件的按钮
+      //             // document.querySelector('.uploadId input').click();
+      //             // document.querySelector('.uploadVoiceBtn').click();
+      //           }
+      //         }
+      //       },
+      //       // imageDrop: true,
+      //       imageResize: {} // 配置图片可缩放大小
+      //     }
+      //   }
+    }
   },
   computed: {
     // editor () {
@@ -111,8 +136,13 @@ export default {
     content (val) {
       this.content = val;
     },
-    options (val) {
-      this.options = val;
+    options: {
+      immediate: true,
+      handler (data) {
+        console.log(data, 'optionsoptionsoptions');
+        data.modules.clipboard.matchers = [[Node.ELEMENT_NODE, this.HandleCustomMatcher]];
+        this.optionsData = data;
+      }
     },
     disabled: {
       immediate: true,
@@ -128,6 +158,24 @@ export default {
   },
   mounted () {
     this.editor = this.$refs.myQuillEditor;
+    // this.editor.clipboard.addMatcher(Node.ELEMENT_NODE, function(node, delta) {
+    //     console.log(node, 2222);
+    //     if (node.nodeName === 'IMG') {
+    //       try {
+    //         // node.defaultPrevented();
+    //         // this.editor.setSelection(null);
+    //         return ;
+            
+    //       } catch (error) {
+    //         console.log(7777)
+            
+    //       }
+    //       // debugger;
+    //     }
+    //     // console.log(3333);
+    //     return delta.insert(node.innerText);
+    //     // return;
+    // });
     this.initVoiceButton();
     if (this.$props.disabled) {
       this.editor.quill.enable(false);
@@ -140,6 +188,21 @@ export default {
   created () {
   },
   methods: {
+    HandleCustomMatcher(node, Delta) {
+      console.log('zoule ma ');
+      // 文字、图片等，从别处复制而来，清除自带样式，转为纯文本
+      let ops = []
+      Delta.ops.forEach(op => {
+        console.log(op, 'opoppop');
+        if (op.insert && typeof op.insert === 'string') {
+        ops.push({
+          insert: op.insert,
+        })
+        }
+      })
+      Delta.ops = ops
+      return Delta
+    },
     initVoiceButton: function () {
       // 初始化"voice"按钮样式
       const voiceButtonList = document.querySelectorAll('.ql-voice');
@@ -205,20 +268,37 @@ export default {
         padding: 20px 15px!important;
       }
     }
-    >>>.ql-toolbar.ql-snow .ql-formats{
+    /deep/ .ql-toolbar.ql-snow .ql-formats{
       margin:0px;
     }
-    >>>.quill-editor {
-    line-height: normal;
+    /deep/ .quill-editor {
+      line-height: normal;
     }
-    >>>.voice-bg{
+    /deep/ .voice-bg{
       width:14px;
       height:14px;
-      background: url('~@/assets/img/voice.png') no-repeat center;
+      background: url('./voice.png') no-repeat center !important;
       background-size:100% 100%;
     }
     strong{
       font-weight:600;
     }
+  }
+  .createQuestion /deep/ .voice-bg{
+    width:14px;
+    height:14px;
+    background: url('./voice.png') no-repeat center !important;
+    background-size:100% 100%;
+  }
+</style>
+<style>
+  body .createQuestion .ql-snow.ql-toolbar .voice-bg{
+    width:14px ;
+    height:14px ;
+    background: url('./voice.png') no-repeat center ;
+    background-size:100% 100% ;
+  }
+  body .ql-toolbar.ql-snow .ql-formats{
+    margin:0px;
   }
 </style>
