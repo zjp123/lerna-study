@@ -3,7 +3,7 @@
 
 <template lang="pug">
   .createQuestion
-    quill-editor(
+    quill-editor.diy-editor(
       :content="content"
       :options="optionsData"
       ref='myQuillEditor'
@@ -21,19 +21,15 @@ import { ImageDrop } from 'quill-image-drop-module';
 import ImageResize from 'quill-image-resize-module';
 import Video from './editor_video.js'; // 插入h5 video视频
 import AudioBlot from './audio.js'; // 插入h5 video视频
-
 Quill.register(AudioBlot);
 Quill.register(Video);// 注册video
 Quill.register('modules/imageDrop', ImageDrop);
 Quill.register('modules/imageResize', ImageResize);
-
 import 'quill/dist/quill.core.css'
 import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css';
-
 // Vue.use(Upload)
 // console.log(Quill, 'Quill.BlockEmbedQuill.BlockEmbed');
-
 export default {
   name: 'my-editor',
   components: {
@@ -192,14 +188,30 @@ export default {
       console.log('zoule ma ');
       // 文字、图片等，从别处复制而来，清除自带样式，转为纯文本
       let ops = []
+      // Delta.ops.forEach(op => {
+      //   console.log(op, 'opoppop');
+      //   if (op.insert && typeof op.insert === 'string') {
+      //   ops.push({
+      //     insert: op.insert,
+      //   })
+      //   }
+      // })
       Delta.ops.forEach(op => {
-        console.log(op, 'opoppop');
-        if (op.insert && typeof op.insert === 'string') {
-        ops.push({
-          insert: op.insert,
-        })
+        if (op.insert) {
+          if (typeof op.insert === 'object' && op.insert.hasOwnProperty('image') && op.insert.image.indexOf('data:image/png;base64') !== -1) {
+            return false;
+          } else {
+            ops.push({
+              insert: op.insert
+            });
+          }
+          // if (typeof op.insert === 'object' && (op.insert.hasOwnProperty('voice') || op.insert.hasOwnProperty('video'))) {
+          //   ops.push({
+          //     insert: op.insert
+          //   });
+          // }
         }
-      })
+      });
       Delta.ops = ops
       return Delta
     },
@@ -228,8 +240,9 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+  
   .createQuestion{
-    >>> strong{
+    /deep/ strong{
       font-weight: 800 !important;
     }
     .el-upload-list__item-delete{
@@ -292,6 +305,14 @@ export default {
   }
 </style>
 <style>
+  /* .diy-editor{
+    background: red;
+    
+  } */
+  .ql-editor{
+    max-height: 300px;
+    overflow-y: scroll;
+  }
   body .createQuestion .ql-snow.ql-toolbar .voice-bg{
     width:14px ;
     height:14px ;
